@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Luyện Đọc Tiếng Việt Lớp 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script type="importmap">
 {
   "imports": {
@@ -22,6 +23,6 @@
 </head>
   <body class="bg-blue-50">
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <script type="text/babel" data-presets="react,typescript" src="./index.tsx"></script>
   </body>
 </html>
