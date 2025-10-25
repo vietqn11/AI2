@@ -325,8 +325,9 @@ export async function generateStoryImage(topic: string): Promise<StoryImage> {
             },
         });
         
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData?.data) {
+        const parts = (response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) || [];
+        for (const part of parts) {
+            if (part.inlineData && part.inlineData.data) {
                 return {
                     prompt: topic,
                     imageUrl: `data:image/png;base64,${part.inlineData.data}`
@@ -665,8 +666,9 @@ export async function generateColoringPage(prompt: string): Promise<string> {
             },
         });
         
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData?.data) {
+        const parts = (response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) || [];
+        for (const part of parts) {
+            if (part.inlineData && part.inlineData.data) {
                 return part.inlineData.data;
             }
         }
@@ -697,7 +699,7 @@ export async function getTTS(text: string): Promise<string> {
             },
         });
         
-        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const base64Audio = response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts && response.candidates[0].content.parts[0] && response.candidates[0].content.parts[0].inlineData && response.candidates[0].content.parts[0].inlineData.data;
         if (!base64Audio) {
             throw new Error("No audio data returned from API.");
         }

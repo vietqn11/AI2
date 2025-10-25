@@ -39,8 +39,8 @@ const getAudioContext = (): AudioContext => {
     if (!audioContext) {
         // Fix: Cast window to 'any' to access vendor-prefixed webkitAudioContext.
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        // Gemini TTS output is at 24000Hz
-        audioContext = new AudioContext({ sampleRate: 24000 });
+        // Create a context with the default sample rate for maximum compatibility.
+        audioContext = new AudioContext();
     }
     return audioContext;
 };
@@ -49,7 +49,8 @@ export async function playAudioFromBase64(base64String: string): Promise<void> {
   try {
     const ctx = getAudioContext();
     const decodedBytes = decode(base64String);
-    // Gemini TTS is mono (1 channel) and 24000Hz
+    // Gemini TTS is mono (1 channel) and 24000Hz.
+    // We specify this sample rate when creating the buffer, not the context.
     const audioBuffer = await decodeAudioData(decodedBytes, ctx, 24000, 1);
     
     const source = ctx.createBufferSource();
