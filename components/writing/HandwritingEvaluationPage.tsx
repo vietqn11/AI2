@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { User, HandwritingFeedback } from '../../types';
 import { evaluateHandwrittenText } from '../../services/geminiService';
@@ -16,12 +15,22 @@ const HandwritingEvaluationPage: React.FC<HandwritingEvaluationPageProps> = ({ u
   const [error, setError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
 
   const startCamera = useCallback(async () => {
+    stopCamera(); // Ensure any existing stream is stopped
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        streamRef.current = stream;
       }
     } catch (err) {
       console.error("Camera access denied:", err);
@@ -30,14 +39,14 @@ const HandwritingEvaluationPage: React.FC<HandwritingEvaluationPageProps> = ({ u
   }, []);
 
   useEffect(() => {
-    startCamera();
+    if (!imageData) {
+      startCamera();
+    }
+    // Cleanup on unmount
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
+      stopCamera();
     };
-  }, [startCamera]);
+  }, [imageData, startCamera]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
@@ -50,8 +59,14 @@ const HandwritingEvaluationPage: React.FC<HandwritingEvaluationPageProps> = ({ u
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setImageData(dataUrl);
+        stopCamera(); // Stop the camera after capturing
       }
     }
+  };
+  
+  const handleRetake = () => {
+    setImageData(null);
+    // The useEffect will automatically restart the camera when imageData becomes null
   };
 
   const handleSubmit = async () => {
@@ -91,7 +106,7 @@ const HandwritingEvaluationPage: React.FC<HandwritingEvaluationPageProps> = ({ u
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {imageData ? (
               <>
-                <button onClick={() => setImageData(null)} className="px-6 py-3 bg-gray-500 text-white font-semibold rounded-full hover:bg-gray-600 transition">Chụp lại</button>
+                <button onClick={handleRetake} className="px-6 py-3 bg-gray-500 text-white font-semibold rounded-full hover:bg-gray-600 transition">Chụp lại</button>
                 <button onClick={handleSubmit} className="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full hover:bg-blue-700 transition">Gửi bài chấm</button>
               </>
             ) : (
